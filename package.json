@@ -1,12 +1,21 @@
 {
   "name": "baseball-park-factors",
   "version": "1.0.0",
-  "description": "Baseball park factors project",
-  "main": "index.js",
+  "description": "Baseball park factors with weather adjustments",
   "scripts": {
-    "start": "node index.js"
+    "build": "pip install -r requirements.txt && python3 python/calculate_park_factors.py && npx @11ty/eleventy",
+    "generate-data": "python3 python/calculate_park_factors.py",
+    "build-site": "npx @11ty/eleventy",
+    "dev": "npx @11ty/eleventy --serve",
+    "start": "npx @11ty/eleventy --serve"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "@11ty/eleventy": "^2.0.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": ["baseball", "park-factors", "eleventy", "netlify"],
+  "author": "Your Name",
+  "license": "MIT"
 }
