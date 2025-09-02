@@ -16,6 +16,6 @@
     "netlify-cli": "^17.0.0"
   },
   "keywords": ["baseball", "park-factors", "eleventy", "netlify"],
-  "author": "Your Name",
-  "license": "MIT"
+  "author": "Robert Gorman",
+  "license": ""
 }
