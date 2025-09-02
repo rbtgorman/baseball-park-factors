@@ -1,0 +1,12 @@
+{
+  "name": "baseball-park-factors",
+  "version": "1.0.0",
+  "description": "Baseball park factors project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
