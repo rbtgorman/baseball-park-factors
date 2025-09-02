@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if title %}{{ title }}{% else %}Baseball Park Factors{% endif %}</title>
+    <meta name="description" content="Daily MLB park factors with weather adjustments">
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+    <div class="container">
+        {{ content | safe }}
+    </div>
+    
+    <script>
+        // View switching functionality
+        let currentView = 'percentage';
+        let currentEffect = 'combined';
+        
+        function changeView(view) {
+            currentView = view;
+            updateActiveButton('.nav-buttons:first-of-type button', view);
+            console.log('View changed to:', view);
+        }
+        
+        function changeEffect(effect) {
+            currentEffect = effect;
+            updateActiveButton('.nav-buttons:last-of-type button', effect);
+            console.log('Effect changed to:', effect);
+        }
+        
+        function updateActiveButton(selector, activeValue) {
+            document.querySelectorAll(selector).forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick') && 
+                    btn.getAttribute('onclick').includes(activeValue)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstViewBtn = document.querySelector('.nav-buttons:first-of-type button');
+            const firstEffectBtn = document.querySelector('.nav-buttons:last-of-type button');
+            
+            if (firstViewBtn) firstViewBtn.classList.add('active');
+            if (firstEffectBtn) firstEffectBtn.classList.add('active');
+        });
+        
+        // Auto-refresh every 30 minutes
+        setTimeout(() => {
+            window.location.reload();
+        }, 30 * 60 * 1000);
+    </script>
+</body>
+</html>
