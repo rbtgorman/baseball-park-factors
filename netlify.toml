@@ -1,0 +1,33 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  PYTHON_VERSION = "3.9"
+
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
+
+# Redirect API calls to functions
+[[redirects]]
+  from = "/api/park-factors"
+  to = "/.netlify/functions/park-factors"
+  status = 200
+
+[[redirects]]
+  from = "/api/weather/*"
+  to = "/.netlify/functions/weather/:splat"
+  status = 200
+
+# Custom headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
