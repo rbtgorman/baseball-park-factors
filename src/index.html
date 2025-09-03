@@ -5,108 +5,423 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baseball Park Factors</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #8B4513 0%, #DEB887 100%);
-            margin: 0;
-            padding: 20px;
-            color: white;
-            text-align: center;
+        :root {
+            --bg-primary: linear-gradient(135deg, #8B4513 0%, #DEB887 100%);
+            --bg-card: rgba(255,255,255,0.95);
+            --color-primary: #4472C4;
+            --color-positive: #28a745;
+            --color-negative: #dc3545;
+            --color-neutral: #6c757d;
+            --shadow-card: 0 4px 6px rgba(0,0,0,0.1);
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.9);
-            padding: 30px;
-            border-radius: 15px;
-            color: #333;
         }
-        .mascot {
-            font-size: 48px;
+
+        .header {
+            text-align: center;
+            color: white;
             margin-bottom: 20px;
         }
-        .status-info {
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(0,0,0,0.05);
-            border-radius: 8px;
-            text-align: left;
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
-        .api-button {
-            background: #4472C4; 
-            color: white; 
-            padding: 10px 20px; 
-            text-decoration: none; 
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 15px;
+
+        .weather-key {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
         }
-        .api-button:hover {
+
+        .weather-key a {
+            color: #87CEEB;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons button {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 100px;
+        }
+
+        .nav-buttons button:hover {
             background: #365a96;
+            transform: translateY(-1px);
         }
-        .timestamp {
-            font-size: 0.9em;
+
+        .nav-buttons button.active {
+            background: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.3);
+        }
+
+        .effect-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .effect-buttons button {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .effect-buttons button.active {
+            background: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.3);
+        }
+
+        .factors-container {
+            background: var(--bg-card);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 20px;
+        }
+
+        .factors-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .factors-table th {
+            background: var(--color-primary);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .factors-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+
+        .factors-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .factors-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .game-cell {
+            text-align: left !important;
+            min-width: 200px;
+        }
+
+        .stadium-name {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+
+        .game-info {
+            font-size: 0.8rem;
             color: #666;
-            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weather-icons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .factor-positive {
+            color: var(--color-positive);
+            font-weight: 600;
+        }
+
+        .factor-negative {
+            color: var(--color-negative);
+            font-weight: 600;
+        }
+
+        .factor-neutral {
+            color: var(--color-neutral);
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Weather Icons */
+        .weather-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+
+        .wind-arrow {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .factors-table {
+                font-size: 0.8rem;
+            }
+            
+            .factors-table th,
+            .factors-table td {
+                padding: 8px 5px;
+            }
+            
+            .game-cell {
+                min-width: 150px;
+            }
+            
+            .nav-buttons,
+            .effect-buttons {
+                justify-content: center;
+            }
+            
+            .nav-buttons button,
+            .effect-buttons button {
+                min-width: 80px;
+                font-size: 0.8rem;
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="mascot">⚾</div>
-        <h1>Baseball Park Factors</h1>
-        <h2 id="current-date"></h2>
-        <p class="timestamp">Last Updated: <span id="last-updated"></span></p>
-        
-        <div class="status-info">
-            <!-- 
-            <p><strong>Site Status: Successfully Deployed!</strong></p>
-            <p>Python data generation: ✅ Working - Successfully processing 20 MLB stadiums with weather-adjusted calculations</p>
-            <p>Netlify functions: ✅ Deployed - API endpoints active for real-time data access</p>
-                      -->
-
+        <div class="header">
+            <h1>Park Factors</h1>
         </div>
-        
-        <div style="margin-top: 30px;">
-            <a href="/.netlify/functions/park-factors" class="api-button">View API Data</a>
+
+        <div class="weather-key">
+            <a href="#">Weather Icon Key</a> — <a href="#">Park Factors Guide</a>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="active" onclick="changeView('percentage')">Model %</button>
+            <button onclick="changeView('hash')">Model #</button>
+            <button onclick="changeView('wind')">Wind</button>
+            <button onclick="changeView('air')">Air</button>
+            <button onclick="changeView('traits')">Traits</button>
+            <button onclick="changeView('summary')">Summary</button>
+        </div>
+
+        <div class="effect-buttons">
+            <button class="active" onclick="changeEffect('combined')">Combined Effect</button>
+            <button onclick="changeEffect('stadium')">Stadium Only</button>
+            <button onclick="changeEffect('weather')">Weather Only</button>
+        </div>
+
+        <div class="factors-container">
+            <table class="factors-table">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>HR</th>
+                        <th>2B/3B</th>
+                        <th>1B</th>
+                        <th>Runs</th>
+                    </tr>
+                </thead>
+                <tbody id="factors-tbody">
+                    <tr>
+                        <td colspan="5" class="loading">Loading park factors data...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // Function to format date in a readable format
-        function formatCurrentDate() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            };
-            return now.toLocaleDateString('en-US', options);
+        // Current view and effect state
+        let currentView = 'percentage';
+        let currentEffect = 'combined';
+        let parkFactorsData = null;
+
+        // Weather icon mapping
+        const weatherIcons = {
+            'clear': '☀️',
+            'mostly sunny': '🌤️',
+            'partly cloudy': '⛅',
+            'overcast': '☁️',
+            'light clouds': '🌥️',
+            'rain': '🌧️'
+        };
+
+        // Wind direction arrows
+        const windArrows = {
+            'N': '↑', 'NNE': '↗', 'NE': '↗', 'ENE': '↗',
+            'E': '→', 'ESE': '↘', 'SE': '↘', 'SSE': '↘',
+            'S': '↓', 'SSW': '↙', 'SW': '↙', 'WSW': '↙',
+            'W': '←', 'WNW': '↖', 'NW': '↖', 'NNW': '↖'
+        };
+
+        // Load park factors data from API
+        async function loadParkFactors() {
+            try {
+                const response = await fetch('/.netlify/functions/park-factors');
+                const data = await response.json();
+                parkFactorsData = data;
+                renderTable();
+            } catch (error) {
+                console.error('Error loading park factors:', error);
+                document.getElementById('factors-tbody').innerHTML = `
+                    <tr><td colspan="5" class="error">Unable to load park factors data. Please try again later.</td></tr>
+                `;
+            }
         }
 
-        // Function to format time for last updated
-        function formatLastUpdated() {
-            const now = new Date();
-            const timeOptions = {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-                timeZoneName: 'short'
-            };
-            return now.toLocaleString('en-US', timeOptions);
+        // Render the park factors table
+        function renderTable() {
+            if (!parkFactorsData || !parkFactorsData.factors) {
+                return;
+            }
+
+            const tbody = document.getElementById('factors-tbody');
+            tbody.innerHTML = '';
+
+            parkFactorsData.factors.forEach(factor => {
+                const row = document.createElement('tr');
+                
+                // Get weather icon and wind arrow
+                const weatherIcon = weatherIcons[factor.weatherCondition.toLowerCase()] || '☀️';
+                const windArrow = windArrows[factor.windDirection] || '↑';
+                
+                // Calculate percentage differences
+                const hrPercent = (factor.hrFactor - 100).toFixed(0);
+                const doublesPercent = (factor.doublesFactor - 100).toFixed(0);
+                const singlesPercent = (factor.singlesFactor - 100).toFixed(0);
+                const runsPercent = (factor.runsFactor - 100).toFixed(0);
+
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${factor.ballpark}</div>
+                        <div class="game-info">
+                            <span>${factor.team}</span>
+                            <div class="weather-icons">
+                                <span class="wind-arrow">${windArrow}</span>
+                                <span>${weatherIcon}</span>
+                                <span style="color: #999; font-size: 0.7rem;">${factor.windSpeed}mph</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="${getFactorClass(factor.hrFactor)}">
+                        ${hrPercent > 0 ? '+' : ''}${hrPercent}%
+                    </td>
+                    <td class="${getFactorClass(factor.doublesFactor)}">
+                        ${doublesPercent > 0 ? '+' : ''}${doublesPercent}%
+                    </td>
+                    <td class="${getFactorClass(factor.singlesFactor)}">
+                        ${singlesPercent > 0 ? '+' : ''}${singlesPercent}%
+                    </td>
+                    <td class="${getFactorClass(factor.runsFactor)}">
+                        ${runsPercent > 0 ? '+' : ''}${runsPercent}%
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
         }
 
-        // Update the date and timestamp when page loads
+        // Get CSS class for factor coloring
+        function getFactorClass(value) {
+            if (value > 105) return 'factor-positive';
+            if (value < 95) return 'factor-negative';
+            return 'factor-neutral';
+        }
+
+        // View switching functionality
+        function changeView(view) {
+            currentView = view;
+            updateActiveButtons('.nav-buttons button', view);
+            // Different views would show different data - for now just log
+            console.log('View changed to:', view);
+        }
+
+        function changeEffect(effect) {
+            currentEffect = effect;
+            updateActiveButtons('.effect-buttons button', effect);
+            console.log('Effect changed to:', effect);
+            // Here you could modify the data based on the effect
+        }
+
+        function updateActiveButtons(selector, activeValue) {
+            document.querySelectorAll(selector).forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.onclick && btn.onclick.toString().includes(activeValue)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('current-date').textContent = formatCurrentDate();
-            document.getElementById('last-updated').textContent = formatLastUpdated();
+            loadParkFactors();
+            
+            // Refresh data every 30 minutes
+            setInterval(loadParkFactors, 30 * 60 * 1000);
         });
-
-        // Update timestamp every minute
-        setInterval(function() {
-            document.getElementById('last-updated').textContent = formatLastUpdated();
-        }, 60000); // 60000 milliseconds = 1 minute
     </script>
 </body>
 </html>
