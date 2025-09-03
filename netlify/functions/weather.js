@@ -1,6 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
+export async function handler() {
+  const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${process.env.API_KEY}&q=Newark`);
+  const data = await res.json();
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(data),
+  };
+}
+
+
 exports.handler = async (event, context) => {
   const { team } = event.queryStringParameters || {};
   

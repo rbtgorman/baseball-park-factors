@@ -1,11 +1,13 @@
 [build]
-  command = "npm run build"
+  # Run Python script first, then build Eleventy
+  command = "python3 python/calculate_park_factors.py && npm run build"
   functions = "netlify/functions"
   publish = "dist/"
 
 [build.environment]
   NODE_VERSION = "18"
   PYTHON_VERSION = "3.9"
+  API_KEY = "3f9b48769c07fcf29078b4d62df8d84d" # Make sure your API key is set
 
 [context.production.environment]
   NODE_ENV = "production"
@@ -31,4 +33,3 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
-

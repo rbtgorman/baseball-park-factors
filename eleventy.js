@@ -33,6 +33,9 @@ module.exports = function(eleventyConfig) {
     return "factor-neutral";
   });
 
+  // ✅ Log API key before returning config
+  console.log("API_KEY inside Eleventy:", process.env.API_KEY);
+
   return {
     dir: {
       input: "src",

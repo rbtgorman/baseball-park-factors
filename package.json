@@ -11,12 +11,18 @@
     "start": "npx @11ty/eleventy --serve"
   },
   "dependencies": {
-    "@11ty/eleventy": "^2.0.1"
+    "@11ty/eleventy": "^2.0.1",
+    "dotenv": "^17.2.2"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
   },
-  "keywords": ["baseball", "park-factors", "eleventy", "netlify"],
+  "keywords": [
+    "baseball",
+    "park-factors",
+    "eleventy",
+    "netlify"
+  ],
   "author": "Your Name",
   "license": "MIT"
 }

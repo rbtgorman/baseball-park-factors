@@ -116,8 +116,8 @@ HISTORICAL_PARK_FACTORS = {
 
 class WeatherService:
     def __init__(self, api_key=None):
-        self.api_key = api_key or os.getenv('OPENWEATHER_API_KEY')
-        self.base_url = 'http://api.openweathermap.org/data/2.5'
+        self.api_key = api_key or os.getenv('API_KEY')
+        self.base_url = 'https://api.openweathermap.org/data/2.5'
     
     def get_weather_for_stadium(self, lat, lon):
         """Get current weather for stadium coordinates"""
