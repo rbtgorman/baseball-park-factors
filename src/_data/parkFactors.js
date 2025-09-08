@@ -1,44 +1,68 @@
-const fs = require('fs');
+const { spawn } = require('child_process');
 const path = require('path');
-const { execSync } = require('child_process');
 
-module.exports = function() {
+exports.handler = async (event, context) => {
   try {
-    const dataPath = path.join(process.cwd(), 'data/park-factors.json');
-    
-    let needsUpdate = true;
-    if (fs.existsSync(dataPath)) {
-      const stats = fs.statSync(dataPath);
-      const hoursSinceUpdate = (Date.now() - stats.mtime) / (1000 * 60 * 60);
-      needsUpdate = hoursSinceUpdate > 1;
-    }
-    
-    if (needsUpdate) {
-      console.log('Generating fresh park factors data...');
-      try {
-        execSync('python3 python/calculate_park_factors.py', { 
-          cwd: process.cwd(), stdio: 'inherit'
-        });
-      } catch (error) {
-        console.warn('Python script failed, checking for existing data...');
-      }
-    }
-    
-    if (fs.existsSync(dataPath)) {
-      return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-    } else {
-      throw new Error('No park factors data available');
-    }
-    
-  } catch (error) {
-    console.error('Error loading park factors:', error.message);
+    // Run Python script to generate fresh park factors data
+    const pythonScript = path.join(__dirname, '../../python/calculate_park_factors.py');
+    const parkFactors = await runPythonScript(pythonScript);
+
     return {
-      factors: [],
-      error: 'Unable to load current park factors data. Please check back later.',
-      lastUpdated: new Date().toISOString(),
-      date: new Date().toLocaleDateString('en-US', { 
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-cache' // Ensure fresh data
+      },
+      body: JSON.stringify(parkFactors)
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ 
+        error: 'Failed to calculate park factors',
+        details: error.message 
       })
     };
   }
 };
+
+function runPythonScript(scriptPath) {
+  return new Promise((resolve, reject) => {
+    const python = spawn('python3', [scriptPath]);
+    let output = '';
+    let error = '';
+
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    python.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    python.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Python script failed with code ${code}: ${error}`));
+      } else {
+        try {
+          // Parse the JSON output from your Python script
+          const result = JSON.parse(output);
+          resolve(result);
+        } catch (e) {
+          reject(new Error(`Failed to parse Python output: ${e.message}\nOutput: ${output}`));
+        }
+      }
+    });
+
+    // Set timeout to prevent hanging
+    setTimeout(() => {
+      python.kill();
+      reject(new Error('Python script timed out'));
+    }, 30000); // 30 second timeout
+  });
+}
