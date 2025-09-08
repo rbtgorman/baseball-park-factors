@@ -6,7 +6,7 @@
   "scripts": {
     "generate-data": "python3 python/calculate_park_factors.py",
     "build-site": "npx @11ty/eleventy",
-    "build": "python3 python/calculate_park_factors.py && mkdir -p dist && cp -r src/* dist/",
+    "build": "python3 python/calculate_park_factors.py && mkdir -p dist && mkdir -p dist/data && cp data/park-factors.json dist/data/ && cp -r src/* dist/",
     "dev": "npx @11ty/eleventy --serve",
     "start": "npx @11ty/eleventy --serve"
   },
