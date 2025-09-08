@@ -1,6 +1,6 @@
 [build]
-  # Run Python script first, then build Eleventy
-  command = "python3 python/calculate_park_factors.py && npm run build"
+  # Just build the site - no Python script needed at build time
+  command = "npm run build"
   functions = "netlify/functions"
   publish = "dist/"
 
