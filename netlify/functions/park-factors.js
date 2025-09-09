@@ -30,10 +30,12 @@ exports.handler = async (event, context) => {
 
 function getWeatherData(lat, lon) {
   return new Promise((resolve, reject) => {
-    const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=3f9b48769c07fcf29078b4d62df8d84d&units=imperial`;
     
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,precipitation_sum&start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&timezone=America/New_York`;
+    // Set a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      resolve(null);
+    }, 3000); // 3 second timeout per call
     
     https.get(url, (res) => {
       let data = '';
@@ -41,49 +43,45 @@ function getWeatherData(lat, lon) {
         data += chunk;
       });
       res.on('end', () => {
+        clearTimeout(timeout);
         try {
-          const weatherData = JSON.parse(data);
-          resolve(weatherData);
+          const weather = JSON.parse(data);
+          resolve({
+            temp: Math.round(weather.main.temp),
+            wind: Math.round(weather.wind.speed), // OpenWeatherMap already gives mph in imperial units
+            condition: weather.weather[0].description
+          });
         } catch (e) {
           resolve(null);
         }
       });
     }).on('error', (err) => {
+      clearTimeout(timeout);
       resolve(null);
     });
   });
 }
 
 function calculateWeatherAdjustedFactor(baseFactor, weatherData) {
-  if (!weatherData || !weatherData.daily) {
+  if (!weatherData) {
     return baseFactor;
   }
   
-  const daily = weatherData.daily;
-  if (!daily.temperature_2m_max || !daily.windspeed_10m_max) {
-    return baseFactor;
-  }
+  const { temp, wind } = weatherData;
   
-  // Get recent averages (last 3 days)
-  const recentTemps = daily.temperature_2m_max.slice(-3);
-  const recentWinds = daily.windspeed_10m_max.slice(-3);
-  
-  const avgTemp = recentTemps.reduce((a, b) => a + b, 0) / recentTemps.length;
-  const avgWind = recentWinds.reduce((a, b) => a + b, 0) / recentWinds.length;
-  
-  // Weather adjustments
+  // Weather adjustments based on current conditions
   let tempFactor = 1.0;
-  if (avgTemp > 80) {
-    tempFactor = 1.02;
-  } else if (avgTemp < 50) {
-    tempFactor = 0.98;
+  if (temp > 80) {
+    tempFactor = 1.02; // Hot weather favors offense
+  } else if (temp < 50) {
+    tempFactor = 0.98; // Cold weather hurts offense
   }
   
   let windFactor = 1.0;
-  if (avgWind > 15) {
-    windFactor = 0.97;
-  } else if (avgWind < 5) {
-    windFactor = 1.01;
+  if (wind > 15) {
+    windFactor = 0.97; // Strong wind hurts offense
+  } else if (wind < 5) {
+    windFactor = 1.01; // Calm conditions favor offense
   }
   
   const adjustedFactor = baseFactor * tempFactor * windFactor;
@@ -119,45 +117,48 @@ async function calculateParkFactors() {
     "Marlins Park": {"lat": 25.7781, "lon": -80.2197, "base_hr": 0.919, "base_runs": 0.948}
   };
   
-  const parkFactors = [];
+  console.log('Starting parallel weather data fetch using OpenWeatherMap...');
   
-  for (const [parkName, data] of Object.entries(ballparks)) {
+  // CREATE ALL WEATHER PROMISES SIMULTANEOUSLY
+  const weatherPromises = Object.entries(ballparks).map(async ([parkName, data]) => {
     try {
       const weatherData = await getWeatherData(data.lat, data.lon);
-      
-      const adjustedHrFactor = calculateWeatherAdjustedFactor(data.base_hr, weatherData);
-      const adjustedRunsFactor = calculateWeatherAdjustedFactor(data.base_runs, weatherData);
-      
-      let weatherSummary = "Normal conditions";
-      if (weatherData && weatherData.daily && weatherData.daily.temperature_2m_max && weatherData.daily.windspeed_10m_max) {
-        const recentTemp = weatherData.daily.temperature_2m_max[weatherData.daily.temperature_2m_max.length - 1] || 70;
-        const recentWind = weatherData.daily.windspeed_10m_max[weatherData.daily.windspeed_10m_max.length - 1] || 5;
-        weatherSummary = `${Math.round(recentTemp)}°F, ${Math.round(recentWind)} mph wind`;
-      }
-      
-      parkFactors.push({
-        park: parkName,
-        hr_factor: adjustedHrFactor,
-        runs_factor: adjustedRunsFactor,
-        weather: weatherSummary,
-        base_hr_factor: data.base_hr,
-        base_runs_factor: data.base_runs
-      });
+      return { parkName, data, weatherData };
     } catch (error) {
-      // If weather fails for this park, use base factors
-      parkFactors.push({
-        park: parkName,
-        hr_factor: data.base_hr,
-        runs_factor: data.base_runs,
-        weather: "Weather unavailable",
-        base_hr_factor: data.base_hr,
-        base_runs_factor: data.base_runs
-      });
+      console.error(`Weather fetch failed for ${parkName}:`, error);
+      return { parkName, data, weatherData: null };
     }
-  }
+  });
+  
+  // WAIT FOR ALL WEATHER CALLS TO COMPLETE
+  console.log('Waiting for all OpenWeatherMap API calls to complete...');
+  const weatherResults = await Promise.all(weatherPromises);
+  console.log('All weather data fetched, processing results...');
+  
+  // PROCESS ALL RESULTS
+  const parkFactors = weatherResults.map(({ parkName, data, weatherData }) => {
+    const adjustedHrFactor = calculateWeatherAdjustedFactor(data.base_hr, weatherData);
+    const adjustedRunsFactor = calculateWeatherAdjustedFactor(data.base_runs, weatherData);
+    
+    let weatherSummary = "Weather unavailable";
+    if (weatherData) {
+      weatherSummary = `${weatherData.temp}°F, ${weatherData.wind} mph wind`;
+    }
+    
+    return {
+      park: parkName,
+      hr_factor: adjustedHrFactor,
+      runs_factor: adjustedRunsFactor,
+      weather: weatherSummary,
+      base_hr_factor: data.base_hr,
+      base_runs_factor: data.base_runs
+    };
+  });
   
   // Sort by HR factor (highest first)
   parkFactors.sort((a, b) => b.hr_factor - a.hr_factor);
+  
+  console.log('Park factors calculation completed');
   
   return {
     last_updated: new Date().toISOString(),
