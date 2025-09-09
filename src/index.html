@@ -207,16 +207,12 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Weather Icons */
-        .weather-icon {
-            width: 16px;
-            height: 16px;
-            display: inline-block;
-        }
-
-        .wind-arrow {
-            font-size: 14px;
-            color: #666;
+        .last-updated {
+            text-align: center;
+            color: white;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            opacity: 0.8;
         }
 
         /* Responsive */
@@ -251,42 +247,39 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Park Factors</h1>
+            <h1>Weather-Adjusted Park Factors</h1>
         </div>
 
         <div class="weather-key">
-            <a href="#">Weather Icon Key</a> — <a href="#">Park Factors Guide</a>
+            Real-time weather data from <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
         </div>
 
+        <div class="last-updated" id="last-updated"></div>
+
         <div class="nav-buttons">
-            <button class="active" onclick="changeView('percentage')">Model %</button>
-            <button onclick="changeView('hash')">Model #</button>
-            <button onclick="changeView('wind')">Wind</button>
-            <button onclick="changeView('air')">Air</button>
-            <button onclick="changeView('traits')">Traits</button>
-            <button onclick="changeView('summary')">Summary</button>
+            <button class="active" onclick="changeView('percentage')">HR & Runs</button>
+            <button onclick="changeView('comparison')">vs Base</button>
+            <button onclick="changeView('weather')">Weather Details</button>
         </div>
 
         <div class="effect-buttons">
-            <button class="active" onclick="changeEffect('combined')">Combined Effect</button>
-            <button onclick="changeEffect('stadium')">Stadium Only</button>
-            <button onclick="changeEffect('weather')">Weather Only</button>
+            <button class="active" onclick="changeEffect('combined')">Weather Adjusted</button>
+            <button onclick="changeEffect('stadium')">Base Factors Only</button>
         </div>
 
         <div class="factors-container">
             <table class="factors-table">
-                <thead>
+                <thead id="table-header">
                     <tr>
-                        <th>Game Details</th>
-                        <th>HR</th>
-                        <th>2B/3B</th>
-                        <th>1B</th>
-                        <th>Runs</th>
+                        <th>Ballpark</th>
+                        <th>HR Factor</th>
+                        <th>Runs Factor</th>
+                        <th>Weather</th>
                     </tr>
                 </thead>
                 <tbody id="factors-tbody">
                     <tr>
-                        <td colspan="5" class="loading">Loading park factors data...</td>
+                        <td colspan="4" class="loading">Loading park factors data...</td>
                     </tr>
                 </tbody>
             </table>
@@ -299,45 +292,49 @@
         let currentEffect = 'combined';
         let parkFactorsData = null;
 
-        // Weather icon mapping
-        const weatherIcons = {
-            'clear': '☀️',
-            'mostly sunny': '🌤️',
-            'partly cloudy': '⛅',
-            'overcast': '☁️',
-            'light clouds': '🌥️',
-            'rain': '🌧️'
-        };
-
-        // Wind direction arrows
-        const windArrows = {
-            'N': '↑', 'NNE': '↗', 'NE': '↗', 'ENE': '↗',
-            'E': '→', 'ESE': '↘', 'SE': '↘', 'SSE': '↘',
-            'S': '↓', 'SSW': '↙', 'SW': '↙', 'WSW': '↙',
-            'W': '←', 'WNW': '↖', 'NW': '↖', 'NNW': '↖'
-        };
-
         // Load park factors data from API
         async function loadParkFactors() {
+            console.log('Loading park factors...');
             try {
                 const response = await fetch('/.netlify/functions/park-factors');
+                console.log('API response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('API data received:', data);
+                
                 parkFactorsData = data;
+                updateLastUpdated();
                 renderTable();
+                
             } catch (error) {
                 console.error('Error loading park factors:', error);
                 document.getElementById('factors-tbody').innerHTML = `
-                    <tr><td colspan="5" class="error">Unable to load park factors data. Please try again later.</td></tr>
+                    <tr><td colspan="4" class="error">Unable to load park factors data: ${error.message}</td></tr>
                 `;
+            }
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            if (parkFactorsData && parkFactorsData.last_updated) {
+                const date = new Date(parkFactorsData.last_updated);
+                const timeString = date.toLocaleString();
+                document.getElementById('last-updated').textContent = `Last updated: ${timeString}`;
             }
         }
 
         // Render the park factors table
         function renderTable() {
+            console.log('Rendering table...');
+            
             if (!parkFactorsData || !parkFactorsData.park_factors) {
+                console.error('No park factors data available');
                 return;
             }
-
 
             const tbody = document.getElementById('factors-tbody');
             tbody.innerHTML = '';
@@ -345,72 +342,131 @@
             parkFactorsData.park_factors.forEach(factor => {
                 const row = document.createElement('tr');
                 
-                // Get weather icon and wind arrow
-                const weatherIcon = weatherIcons[factor.weatherCondition.toLowerCase()] || '☀️';
-                const windArrow = windArrows[factor.windDirection] || '↑';
+                let hrDisplay, runsDisplay;
                 
-                // Calculate percentage differences
-                const hrPercent = (factor.hrFactor - 100).toFixed(0);
-                const doublesPercent = (factor.doublesFactor - 100).toFixed(0);
-                const singlesPercent = (factor.singlesFactor - 100).toFixed(0);
-                const runsPercent = (factor.runsFactor - 100).toFixed(0);
+                if (currentEffect === 'combined') {
+                    // Show weather-adjusted factors
+                    if (currentView === 'percentage') {
+                        hrDisplay = formatAsPercentage(factor.hr_factor);
+                        runsDisplay = formatAsPercentage(factor.runs_factor);
+                    } else if (currentView === 'comparison') {
+                        hrDisplay = formatComparison(factor.hr_factor, factor.base_hr_factor);
+                        runsDisplay = formatComparison(factor.runs_factor, factor.base_runs_factor);
+                    } else {
+                        hrDisplay = factor.hr_factor.toFixed(3);
+                        runsDisplay = factor.runs_factor.toFixed(3);
+                    }
+                } else {
+                    // Show base factors only
+                    if (currentView === 'percentage') {
+                        hrDisplay = formatAsPercentage(factor.base_hr_factor);
+                        runsDisplay = formatAsPercentage(factor.base_runs_factor);
+                    } else {
+                        hrDisplay = factor.base_hr_factor.toFixed(3);
+                        runsDisplay = factor.base_runs_factor.toFixed(3);
+                    }
+                }
 
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${factor.ballpark}</div>
-                        <div class="game-info">
-                            <span>${factor.team}</span>
-                            <div class="weather-icons">
-                                <span class="wind-arrow">${windArrow}</span>
-                                <span>${weatherIcon}</span>
-                                <span style="color: #999; font-size: 0.7rem;">${factor.windSpeed}mph</span>
+                if (currentView === 'weather') {
+                    // Weather details view
+                    row.innerHTML = `
+                        <td class="game-cell">
+                            <div class="stadium-name">${factor.park}</div>
+                        </td>
+                        <td>${factor.weather}</td>
+                        <td>Base: ${factor.base_hr_factor.toFixed(3)}</td>
+                        <td>Adjusted: ${factor.hr_factor.toFixed(3)}</td>
+                    `;
+                } else {
+                    // Standard view
+                    row.innerHTML = `
+                        <td class="game-cell">
+                            <div class="stadium-name">${factor.park}</div>
+                            <div class="game-info">
+                                <span style="color: #999; font-size: 0.75rem;">${factor.weather}</span>
                             </div>
-                        </div>
-                    </td>
-                    <td class="${getFactorClass(factor.hrFactor)}">
-                        ${hrPercent > 0 ? '+' : ''}${hrPercent}%
-                    </td>
-                    <td class="${getFactorClass(factor.doublesFactor)}">
-                        ${doublesPercent > 0 ? '+' : ''}${doublesPercent}%
-                    </td>
-                    <td class="${getFactorClass(factor.singlesFactor)}">
-                        ${singlesPercent > 0 ? '+' : ''}${singlesPercent}%
-                    </td>
-                    <td class="${getFactorClass(factor.runsFactor)}">
-                        ${runsPercent > 0 ? '+' : ''}${runsPercent}%
-                    </td>
-                `;
+                        </td>
+                        <td class="${getFactorClass(currentEffect === 'combined' ? factor.hr_factor : factor.base_hr_factor)}">
+                            ${hrDisplay}
+                        </td>
+                        <td class="${getFactorClass(currentEffect === 'combined' ? factor.runs_factor : factor.base_runs_factor)}">
+                            ${runsDisplay}
+                        </td>
+                        <td style="font-size: 0.8rem; color: #666;">
+                            ${factor.weather}
+                        </td>
+                    `;
+                }
                 
                 tbody.appendChild(row);
             });
         }
 
+        // Format factor as percentage
+        function formatAsPercentage(factor) {
+            const percent = ((factor - 1) * 100).toFixed(1);
+            return `${percent > 0 ? '+' : ''}${percent}%`;
+        }
+
+        // Format comparison between adjusted and base
+        function formatComparison(adjusted, base) {
+            const diff = ((adjusted - base) * 100).toFixed(1);
+            if (Math.abs(diff) < 0.1) return 'No change';
+            return `${diff > 0 ? '+' : ''}${diff}%`;
+        }
+
         // Get CSS class for factor coloring
         function getFactorClass(value) {
-            if (value > 105) return 'factor-positive';
-            if (value < 95) return 'factor-negative';
+            if (value > 1.05) return 'factor-positive';
+            if (value < 0.95) return 'factor-negative';
             return 'factor-neutral';
+        }
+
+        // Update table headers based on view
+        function updateTableHeaders() {
+            const header = document.getElementById('table-header');
+            
+            if (currentView === 'weather') {
+                header.innerHTML = `
+                    <tr>
+                        <th>Ballpark</th>
+                        <th>Current Weather</th>
+                        <th>Base HR Factor</th>
+                        <th>Weather-Adjusted</th>
+                    </tr>
+                `;
+            } else {
+                header.innerHTML = `
+                    <tr>
+                        <th>Ballpark</th>
+                        <th>HR Factor</th>
+                        <th>Runs Factor</th>
+                        <th>Weather</th>
+                    </tr>
+                `;
+            }
         }
 
         // View switching functionality
         function changeView(view) {
             currentView = view;
             updateActiveButtons('.nav-buttons button', view);
-            // Different views would show different data - for now just log
+            updateTableHeaders();
+            renderTable();
             console.log('View changed to:', view);
         }
 
         function changeEffect(effect) {
             currentEffect = effect;
             updateActiveButtons('.effect-buttons button', effect);
+            renderTable();
             console.log('Effect changed to:', effect);
-            // Here you could modify the data based on the effect
         }
 
         function updateActiveButtons(selector, activeValue) {
             document.querySelectorAll(selector).forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.onclick && btn.onclick.toString().includes(activeValue)) {
+                if (btn.onclick && btn.onclick.toString().includes(`'${activeValue}'`)) {
                     btn.classList.add('active');
                 }
             });
@@ -418,6 +474,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
             loadParkFactors();
             
             // Refresh data every 30 minutes
