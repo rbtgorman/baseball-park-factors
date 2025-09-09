@@ -5,16 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baseball Park Factors</title>
     <style>
-        :root {
-            --bg-primary: linear-gradient(135deg, #8B4513 0%, #DEB887 100%);
-            --bg-card: rgba(255,255,255,0.95);
-            --color-primary: #4472C4;
-            --color-positive: #28a745;
-            --color-negative: #dc3545;
-            --color-neutral: #6c757d;
-            --shadow-card: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
+            background: linear-gradient(135deg, #8B4513 0%, #DEB887 100%);
             min-height: 100vh;
             padding: 20px;
             color: #333;
@@ -37,28 +27,81 @@
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 300;
         }
 
-        .weather-key {
-            color: white;
+        .date-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 20px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .date-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .date-nav-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 0.9rem;
         }
 
-        .weather-key a {
-            color: #87CEEB;
-            text-decoration: none;
+        .date-nav-btn:hover {
+            background: #0056b3;
         }
 
-        .nav-buttons {
+        .current-date {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .weather-summary {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: #87CEEB;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .view-buttons {
             display: flex;
             justify-content: center;
             gap: 10px;
@@ -66,27 +109,26 @@
             flex-wrap: wrap;
         }
 
-        .nav-buttons button {
-            background: var(--color-primary);
+        .view-buttons button {
+            background: #007bff;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
+            padding: 10px 20px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.2s ease;
-            min-width: 100px;
         }
 
-        .nav-buttons button:hover {
-            background: #365a96;
+        .view-buttons button.active {
+            background: #0056b3;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .view-buttons button:hover {
+            background: #0056b3;
             transform: translateY(-1px);
-        }
-
-        .nav-buttons button.active {
-            background: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.3);
         }
 
         .effect-buttons {
@@ -98,102 +140,106 @@
         }
 
         .effect-buttons button {
-            background: var(--color-primary);
+            background: #007bff;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 10px 24px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.2s ease;
         }
 
         .effect-buttons button.active {
-            background: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.3);
+            background: #0056b3;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
         }
 
-        .factors-container {
-            background: var(--bg-card);
-            border-radius: 15px;
+        .games-container {
+            background: white;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: var(--shadow-card);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        .factors-table {
+        .games-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .factors-table th {
-            background: var(--color-primary);
+        .games-table thead {
+            background: #007bff;
             color: white;
+        }
+
+        .games-table th {
             padding: 15px 10px;
             text-align: center;
             font-weight: 600;
             font-size: 1rem;
         }
 
-        .factors-table td {
+        .games-table td {
             padding: 12px 10px;
             text-align: center;
             border-bottom: 1px solid #e9ecef;
             font-size: 0.9rem;
         }
 
-        .factors-table tbody tr:nth-child(even) {
+        .games-table tbody tr:nth-child(even) {
             background-color: #f8f9fa;
         }
 
-        .factors-table tbody tr:hover {
+        .games-table tbody tr:hover {
             background-color: #e3f2fd;
         }
 
         .game-cell {
             text-align: left !important;
             min-width: 200px;
+            background: #f8f9fa !important;
         }
 
         .stadium-name {
             font-weight: 600;
-            color: #1976d2;
+            color: #007bff;
+            font-size: 1rem;
             margin-bottom: 4px;
         }
 
-        .game-info {
+        .game-details {
             font-size: 0.8rem;
             color: #666;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 2px;
         }
 
-        .weather-icons {
+        .weather-info {
+            font-size: 0.75rem;
+            color: #999;
             display: flex;
-            gap: 4px;
             align-items: center;
+            gap: 4px;
         }
 
         .factor-positive {
-            color: var(--color-positive);
+            color: #28a745;
             font-weight: 600;
         }
 
         .factor-negative {
-            color: var(--color-negative);
+            color: #dc3545;
             font-weight: 600;
         }
 
         .factor-neutral {
-            color: var(--color-neutral);
+            color: #6c757d;
             font-weight: 600;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 60px;
             color: #666;
             font-size: 1.1rem;
         }
@@ -201,28 +247,37 @@
         .error {
             background: #f8d7da;
             color: #721c24;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             margin: 20px;
             border: 1px solid #f5c6cb;
+            text-align: center;
         }
 
-        .last-updated {
-            text-align: center;
-            color: white;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            opacity: 0.8;
+        /* Weather icons and symbols */
+        .weather-symbols {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .wind-symbol, .temp-symbol, .pressure-symbol {
+            font-size: 12px;
+            color: #666;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .factors-table {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .games-table {
                 font-size: 0.8rem;
             }
             
-            .factors-table th,
-            .factors-table td {
+            .games-table th,
+            .games-table td {
                 padding: 8px 5px;
             }
             
@@ -230,16 +285,20 @@
                 min-width: 150px;
             }
             
-            .nav-buttons,
+            .view-buttons,
             .effect-buttons {
-                justify-content: center;
+                gap: 5px;
             }
             
-            .nav-buttons button,
+            .view-buttons button,
             .effect-buttons button {
-                min-width: 80px;
                 font-size: 0.8rem;
-                padding: 10px 15px;
+                padding: 8px 15px;
+            }
+
+            .date-header {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -247,39 +306,56 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Weather-Adjusted Park Factors</h1>
+            <h1>Park Factors</h1>
         </div>
 
-        <div class="weather-key">
-            Real-time weather data from <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
+        <div class="date-nav">
+            <div class="date-header">
+                <button class="date-nav-btn">&lt;&lt; 9/08</button>
+                <div class="current-date">September 9, 2025</div>
+                <button class="date-nav-btn">9/10 &gt;&gt;</button>
+            </div>
+            <div class="weather-summary" id="weather-summary">
+                Loading weather conditions for all ballparks...
+            </div>
+            <div class="last-updated" id="last-updated"></div>
         </div>
 
-        <div class="last-updated" id="last-updated"></div>
+        <div class="nav-links">
+            <a href="#" style="color: white;">Weather Icon Key</a>
+            <span style="color: white;">—</span>
+            <a href="#" style="color: white;">Park Factors Guide</a>
+        </div>
 
-        <div class="nav-buttons">
-            <button class="active" onclick="changeView('percentage')">HR & Runs</button>
-            <button onclick="changeView('comparison')">vs Base</button>
-            <button onclick="changeView('weather')">Weather Details</button>
+        <div class="view-buttons">
+            <button class="active" onclick="changeView('percentage')">Model %</button>
+            <button onclick="changeView('model')">Model #</button>
+            <button onclick="changeView('wind')">Wind</button>
+            <button onclick="changeView('air')">Air</button>
+            <button onclick="changeView('traits')">Traits</button>
+            <button onclick="changeView('summary')">Summary</button>
         </div>
 
         <div class="effect-buttons">
-            <button class="active" onclick="changeEffect('combined')">Weather Adjusted</button>
-            <button onclick="changeEffect('stadium')">Base Factors Only</button>
+            <button class="active" onclick="changeEffect('combined')">Combined Effect</button>
+            <button onclick="changeEffect('stadium')">Stadium Only</button>
+            <button onclick="changeEffect('weather')">Weather Only</button>
         </div>
 
-        <div class="factors-container">
-            <table class="factors-table">
-                <thead id="table-header">
+        <div class="games-container">
+            <table class="games-table">
+                <thead>
                     <tr>
-                        <th>Ballpark</th>
-                        <th>HR Factor</th>
-                        <th>Runs Factor</th>
-                        <th>Weather</th>
+                        <th>Game</th>
+                        <th>HR</th>
+                        <th>2B/3B</th>
+                        <th>1B</th>
+                        <th>Runs</th>
                     </tr>
                 </thead>
-                <tbody id="factors-tbody">
+                <tbody id="games-tbody">
                     <tr>
-                        <td colspan="4" class="loading">Loading park factors data...</td>
+                        <td colspan="5" class="loading">Loading park factors data...</td>
                     </tr>
                 </tbody>
             </table>
@@ -291,6 +367,35 @@
         let currentView = 'percentage';
         let currentEffect = 'combined';
         let parkFactorsData = null;
+
+        // Team abbreviations for ballparks (simulated)
+        const ballparkTeams = {
+            "Coors Field": { home: "COL", away: "LAD" },
+            "Great American Ball Park": { home: "CIN", away: "CHC" },
+            "Yankee Stadium": { home: "NYY", away: "BOS" },
+            "Fenway Park": { home: "BOS", away: "TB" },
+            "Camden Yards": { home: "BAL", away: "TOR" },
+            "Rogers Centre": { home: "TOR", away: "NYY" },
+            "Minute Maid Park": { home: "HOU", away: "TEX" },
+            "Angel Stadium": { home: "LAA", away: "SEA" },
+            "Chase Field": { home: "ARI", away: "SD" },
+            "Wrigley Field": { home: "CHC", away: "MIL" },
+            "Truist Park": { home: "ATL", away: "PHI" },
+            "Citizens Bank Park": { home: "PHI", away: "NYM" },
+            "Globe Life Field": { home: "TEX", away: "OAK" },
+            "Busch Stadium": { home: "STL", away: "PIT" },
+            "Guaranteed Rate Field": { home: "CWS", away: "DET" },
+            "Target Field": { home: "MIN", away: "CLE" },
+            "Citi Field": { home: "NYM", away: "WAS" },
+            "Progressive Field": { home: "CLE", away: "KC" },
+            "T-Mobile Park": { home: "SEA", away: "SF" },
+            "Comerica Park": { home: "DET", away: "MIN" },
+            "Tropicana Field": { home: "TB", away: "BAL" },
+            "Kauffman Stadium": { home: "KC", away: "CWS" },
+            "Oracle Park": { home: "SF", away: "COL" },
+            "Petco Park": { home: "SD", away: "LAD" },
+            "Marlins Park": { home: "MIA", away: "ATL" }
+        };
 
         // Load park factors data from API
         async function loadParkFactors() {
@@ -308,12 +413,13 @@
                 
                 parkFactorsData = data;
                 updateLastUpdated();
+                updateWeatherSummary();
                 renderTable();
                 
             } catch (error) {
                 console.error('Error loading park factors:', error);
-                document.getElementById('factors-tbody').innerHTML = `
-                    <tr><td colspan="4" class="error">Unable to load park factors data: ${error.message}</td></tr>
+                document.getElementById('games-tbody').innerHTML = `
+                    <tr><td colspan="5" class="error">Unable to load park factors data: ${error.message}</td></tr>
                 `;
             }
         }
@@ -322,12 +428,32 @@
         function updateLastUpdated() {
             if (parkFactorsData && parkFactorsData.last_updated) {
                 const date = new Date(parkFactorsData.last_updated);
-                const timeString = date.toLocaleString();
-                document.getElementById('last-updated').textContent = `Last updated: ${timeString}`;
+                const timeString = date.toLocaleTimeString();
+                document.getElementById('last-updated').textContent = `Last Updated: ${timeString}`;
             }
         }
 
-        // Render the park factors table
+        // Update weather summary
+        function updateWeatherSummary() {
+            if (parkFactorsData && parkFactorsData.park_factors) {
+                const temps = [];
+                parkFactorsData.park_factors.forEach(factor => {
+                    const tempMatch = factor.weather.match(/(\d+)°F/);
+                    if (tempMatch) {
+                        temps.push(parseInt(tempMatch[1]));
+                    }
+                });
+                
+                if (temps.length > 0) {
+                    const avgTemp = Math.round(temps.reduce((a, b) => a + b, 0) / temps.length);
+                    const outdoorGames = parkFactorsData.park_factors.length;
+                    document.getElementById('weather-summary').textContent = 
+                        `Temperatures will be in the ${avgTemp - 10}s and ${avgTemp + 10}s for all ${outdoorGames} games today. Weather conditions vary by location.`;
+                }
+            }
+        }
+
+        // Render the games table
         function renderTable() {
             console.log('Rendering table...');
             
@@ -336,67 +462,90 @@
                 return;
             }
 
-            const tbody = document.getElementById('factors-tbody');
+            const tbody = document.getElementById('games-tbody');
             tbody.innerHTML = '';
 
-            parkFactorsData.park_factors.forEach(factor => {
+            parkFactorsData.park_factors.forEach((factor, index) => {
+                const teams = ballparkTeams[factor.park] || { home: "HOME", away: "AWAY" };
+                const gameTime = `${10 + (index % 8)}:${(index % 4) * 15 || '05'}`;
+                
                 const row = document.createElement('tr');
                 
-                let hrDisplay, runsDisplay;
+                // Calculate different factor types from HR and Runs factors
+                let hrDisplay, doublesDisplay, singlesDisplay, runsDisplay;
                 
                 if (currentEffect === 'combined') {
-                    // Show weather-adjusted factors
+                    const hrFactor = factor.hr_factor;
+                    const runsFactor = factor.runs_factor;
+                    
+                    // Simulate 2B/3B and 1B factors based on HR and Runs
+                    const doublesFactor = (hrFactor + runsFactor) / 2;
+                    const singlesFactor = runsFactor * 0.95; // Singles typically less affected
+                    
                     if (currentView === 'percentage') {
-                        hrDisplay = formatAsPercentage(factor.hr_factor);
-                        runsDisplay = formatAsPercentage(factor.runs_factor);
-                    } else if (currentView === 'comparison') {
-                        hrDisplay = formatComparison(factor.hr_factor, factor.base_hr_factor);
-                        runsDisplay = formatComparison(factor.runs_factor, factor.base_runs_factor);
+                        hrDisplay = formatAsPercentage(hrFactor);
+                        doublesDisplay = formatAsPercentage(doublesFactor);
+                        singlesDisplay = formatAsPercentage(singlesFactor);
+                        runsDisplay = formatAsPercentage(runsFactor);
                     } else {
-                        hrDisplay = factor.hr_factor.toFixed(3);
-                        runsDisplay = factor.runs_factor.toFixed(3);
+                        hrDisplay = hrFactor.toFixed(2);
+                        doublesDisplay = doublesFactor.toFixed(2);
+                        singlesDisplay = singlesFactor.toFixed(2);
+                        runsDisplay = runsFactor.toFixed(2);
+                    }
+                } else if (currentEffect === 'stadium') {
+                    const hrFactor = factor.base_hr_factor;
+                    const runsFactor = factor.base_runs_factor;
+                    const doublesFactor = (hrFactor + runsFactor) / 2;
+                    const singlesFactor = runsFactor * 0.95;
+                    
+                    if (currentView === 'percentage') {
+                        hrDisplay = formatAsPercentage(hrFactor);
+                        doublesDisplay = formatAsPercentage(doublesFactor);
+                        singlesDisplay = formatAsPercentage(singlesFactor);
+                        runsDisplay = formatAsPercentage(runsFactor);
+                    } else {
+                        hrDisplay = hrFactor.toFixed(2);
+                        doublesDisplay = doublesFactor.toFixed(2);
+                        singlesDisplay = singlesFactor.toFixed(2);
+                        runsDisplay = runsFactor.toFixed(2);
                     }
                 } else {
-                    // Show base factors only
-                    if (currentView === 'percentage') {
-                        hrDisplay = formatAsPercentage(factor.base_hr_factor);
-                        runsDisplay = formatAsPercentage(factor.base_runs_factor);
-                    } else {
-                        hrDisplay = factor.base_hr_factor.toFixed(3);
-                        runsDisplay = factor.base_runs_factor.toFixed(3);
-                    }
+                    // Weather only - show difference
+                    const hrDiff = factor.hr_factor - factor.base_hr_factor;
+                    const runsDiff = factor.runs_factor - factor.base_runs_factor;
+                    
+                    hrDisplay = formatDifference(hrDiff);
+                    doublesDisplay = formatDifference(hrDiff * 0.7);
+                    singlesDisplay = formatDifference(runsDiff * 0.3);
+                    runsDisplay = formatDifference(runsDiff);
                 }
 
-                if (currentView === 'weather') {
-                    // Weather details view
-                    row.innerHTML = `
-                        <td class="game-cell">
-                            <div class="stadium-name">${factor.park}</div>
-                        </td>
-                        <td>${factor.weather}</td>
-                        <td>Base: ${factor.base_hr_factor.toFixed(3)}</td>
-                        <td>Adjusted: ${factor.hr_factor.toFixed(3)}</td>
-                    `;
-                } else {
-                    // Standard view
-                    row.innerHTML = `
-                        <td class="game-cell">
-                            <div class="stadium-name">${factor.park}</div>
-                            <div class="game-info">
-                                <span style="color: #999; font-size: 0.75rem;">${factor.weather}</span>
-                            </div>
-                        </td>
-                        <td class="${getFactorClass(currentEffect === 'combined' ? factor.hr_factor : factor.base_hr_factor)}">
-                            ${hrDisplay}
-                        </td>
-                        <td class="${getFactorClass(currentEffect === 'combined' ? factor.runs_factor : factor.base_runs_factor)}">
-                            ${runsDisplay}
-                        </td>
-                        <td style="font-size: 0.8rem; color: #666;">
-                            ${factor.weather}
-                        </td>
-                    `;
-                }
+                // Generate weather symbols
+                const weatherSymbols = generateWeatherSymbols(factor.weather);
+
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${factor.park}</div>
+                        <div class="game-details">${teams.away} @ ${teams.home} ${gameTime}</div>
+                        <div class="weather-info">
+                            ${weatherSymbols}
+                            <span>${factor.weather}</span>
+                        </div>
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.hr_factor : factor.base_hr_factor)}">
+                        ${hrDisplay}
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? (factor.hr_factor + factor.runs_factor) / 2 : (factor.base_hr_factor + factor.base_runs_factor) / 2)}">
+                        ${doublesDisplay}
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.runs_factor * 0.95 : factor.base_runs_factor * 0.95)}">
+                        ${singlesDisplay}
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.runs_factor : factor.base_runs_factor)}">
+                        ${runsDisplay}
+                    </td>
+                `;
                 
                 tbody.appendChild(row);
             });
@@ -404,15 +553,46 @@
 
         // Format factor as percentage
         function formatAsPercentage(factor) {
-            const percent = ((factor - 1) * 100).toFixed(1);
+            const percent = ((factor - 1) * 100).toFixed(0);
             return `${percent > 0 ? '+' : ''}${percent}%`;
         }
 
-        // Format comparison between adjusted and base
-        function formatComparison(adjusted, base) {
-            const diff = ((adjusted - base) * 100).toFixed(1);
-            if (Math.abs(diff) < 0.1) return 'No change';
-            return `${diff > 0 ? '+' : ''}${diff}%`;
+        // Format difference for weather-only view
+        function formatDifference(diff) {
+            const percent = (diff * 100).toFixed(0);
+            if (Math.abs(percent) < 1) return '0%';
+            return `${percent > 0 ? '+' : ''}${percent}%`;
+        }
+
+        // Generate weather symbols
+        function generateWeatherSymbols(weather) {
+            const symbols = [];
+            
+            // Temperature arrow
+            const tempMatch = weather.match(/(\d+)°F/);
+            if (tempMatch) {
+                const temp = parseInt(tempMatch[1]);
+                if (temp > 75) symbols.push('↑');
+                else if (temp < 50) symbols.push('↓');
+                else symbols.push('→');
+            }
+            
+            // Wind arrow
+            const windMatch = weather.match(/(\d+) mph/);
+            if (windMatch) {
+                const wind = parseInt(windMatch[1]);
+                if (wind > 15) symbols.push('↑');
+                else if (wind > 10) symbols.push('→');
+                else symbols.push('↓');
+            }
+            
+            // Pressure symbol (simulated)
+            symbols.push('~');
+            
+            // Weather icon
+            symbols.push('P');
+            
+            return `<span class="weather-symbols">${symbols.join(' ')}</span>`;
         }
 
         // Get CSS class for factor coloring
@@ -422,36 +602,10 @@
             return 'factor-neutral';
         }
 
-        // Update table headers based on view
-        function updateTableHeaders() {
-            const header = document.getElementById('table-header');
-            
-            if (currentView === 'weather') {
-                header.innerHTML = `
-                    <tr>
-                        <th>Ballpark</th>
-                        <th>Current Weather</th>
-                        <th>Base HR Factor</th>
-                        <th>Weather-Adjusted</th>
-                    </tr>
-                `;
-            } else {
-                header.innerHTML = `
-                    <tr>
-                        <th>Ballpark</th>
-                        <th>HR Factor</th>
-                        <th>Runs Factor</th>
-                        <th>Weather</th>
-                    </tr>
-                `;
-            }
-        }
-
         // View switching functionality
         function changeView(view) {
             currentView = view;
-            updateActiveButtons('.nav-buttons button', view);
-            updateTableHeaders();
+            updateActiveButtons('.view-buttons button', view);
             renderTable();
             console.log('View changed to:', view);
         }
