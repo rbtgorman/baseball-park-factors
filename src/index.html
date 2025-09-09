@@ -334,14 +334,15 @@
 
         // Render the park factors table
         function renderTable() {
-            if (!parkFactorsData || !parkFactorsData.factors) {
+            if (!parkFactorsData || !parkFactorsData.park_factors) {
                 return;
             }
+
 
             const tbody = document.getElementById('factors-tbody');
             tbody.innerHTML = '';
 
-            parkFactorsData.factors.forEach(factor => {
+            parkFactorsData.park_factors.forEach(factor => {
                 const row = document.createElement('tr');
                 
                 // Get weather icon and wind arrow
